@@ -558,6 +558,10 @@ video {
   margin: auto;
 }
 
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
 .flex {
   display: flex;
 }
@@ -666,8 +670,12 @@ video {
   padding-top: 0.5rem;
 }
 
-.pr-10 {
-  padding-right: 2.5rem;
+.pr-4 {
+  padding-right: 1rem;
+}
+
+.pr-6 {
+  padding-right: 1.5rem;
 }
 
 .pb-2 {
@@ -785,6 +793,18 @@ video {
 }
 
 @media (min-width: 768px) {
+  .md\:pr-10 {
+    padding-right: 2.5rem;
+  }
+
+  .md\:pr-14 {
+    padding-right: 3.5rem;
+  }
+
+  .md\:text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
 }
 
 @media (min-width: 1024px) {
