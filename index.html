@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cornucopias - Land</title>
+    <link rel="stylesheet" href="tailwind.css">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+<body class="bg-dark flex h-screen" x-data="alpineInstance()" x-init="fetchJpgStore()">
+    <div class="m-auto">
+        <div class="pb-4 text-gray-300 font-bold text-2xl text-center">Cornucopias - Land</div>
+        <template x-if="isLoadingJpg">
+            <div class="text-sm font-bold text-green-500 text-center pb-2">Loading...</div>
+        </template>
+        <template x-if="isErrorJpg">
+            <div class="text-sm font-bold text-red-500 text-center pb-2" x-text="errorJpg"></div>
+        </template>
+        <table class="table-fixed text-gray-200">
+            <thead class="border-b-8 border-dark">
+                <tr class="text-left">
+                    <th class="pr-10">Size</th>
+                    <th class="pr-10">Rarity</th>
+                    <th class="pr-10">Floor</th>
+                    <th class="pr-10">Mint Diff</th>
+                    <th class="pr-10">Mint Diff %</th>
+                    <th class="">Price m<span class="align-top text-xs">2</span></th>
+                </tr>
+            </thead>
+            <template x-for="values,size in collection">
+                <tbody class="border-b-8 border-dark">
+                    <template x-for="values,rarity in values.rarities">
+                        <tr class="text-sm text-gray-400">
+                            <td x-text="size" ></td>
+                            <td x-text="rarity" class="capitalize" :class="values.color"></td>
+                            <td><a x-bind:href="values.url" class="hover:text-red-500" x-text="values.floor" target="_blank"></a></td>
+                            <td x-text="values.price_diff"></td>
+                            <td x-text="values.price_diff_percentage"></td>
+                            <td x-text="values.price_m2"></td>
+                        </tr>
+                    </template>
+                </tbody>
+            </template>
+        </table>
+
+        <div class="flex flex-col text-center text-xs text-gray-500 pt-2">
+            <div>You can click on the floor price :)</div>
+            <div class="pt-1"><a href="https://twitter.com/Tom_Bozik" target="_blank" class="hover:text-green-600">Tombo</a></div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+<script>
+    function alpineInstance() {
+        return {
+            isLoadingJpg: false,
+            isErrorJpg: false,
+            errorJpg: '',
+
+            async fetchJpgStore(){
+                this.isLoadingJpg = true;
+                jpgListings = [];
+                processedListings = [];
+
+                await fetch('https://server.jpgstoreapis.com/search/tokens?policyIds=["07b39a8ead0ef1e3054e816a3b6910060beaf2210fded63fb90ce137"]&saleType=buy-now&sortBy=price-low-to-high&traits={}&nameQuery=&verified=default&pagination={}&size=10000')
+                .then(response => {
+                    if (!response.ok) {
+                        this.isLoadingJpg = false;
+                        this.isErrorJpg = true;
+                        this.errorJpg = `Error: ${response.status} - ${response.statusText}`
+                    }
+                    return response.json()
+                })
+                .then((data) => {
+                    jpgListings = data['tokens'];
+                    this.isLoadingJpg = false;
+                }).catch(function (err) {
+                    this.isLoadingJpg = false;
+                    this.errorJpg = `Error :(`;
+                    this.isErrorJpg = true;
+                });
+
+                jpgListings.forEach(listing => {
+                    processedListings.push({
+                        'size': listing['display_name'].split(" ")[0],
+                        'rarity': listing['traits']['rarity'],
+                        'price': listing['listing_lovelace']/1000000,
+                        'asset_id': listing['asset_id']
+                    })
+                });
+
+                for (let size in this.collection){
+                    for(let rarity in this.collection[size]['rarities']){
+                        let floor_land = processedListings.find(listing => {
+                            return listing['size'] == size && listing['rarity'] == rarity;
+                        });
+                        this.collection[size]['rarities'][rarity]['floor'] = floor_land['price'];
+                        this.collection[size]['rarities'][rarity]['asset_id'] = floor_land['asset_id'];
+                        this.collection[size]['rarities'][rarity]['price_diff'] =  floor_land['price'] - this.collection[size]['mint'];
+                        this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
+                        this.collection[size]['rarities'][rarity]['price_m2'] =  (floor_land['price']/this.collection[size]['area']).toFixed(2);
+                        this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + floor_land['asset_id']; 
+                    }
+                }
+            },
+            collection: {
+                'Small': {
+                    'area': 384,
+                    'mint': 174,
+                    'rarities': {
+                        'common': {
+                            'color': 'text-gray-400',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'uncommon': {
+                            'color': 'text-green-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'rare': {
+                            'color': 'text-blue-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'legendary': {
+                            'color': 'text-pink-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'mythic': {
+                            'color': 'text-yellow-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                    }
+                }, 
+                'Medium': {
+                    'area': 864,
+                    'mint': 359,
+                    'rarities': {
+                        'common': {
+                            'color': 'text-gray-400',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'uncommon': {
+                            'color': 'text-green-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'rare': {
+                            'color': 'text-blue-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'legendary': {
+                            'color': 'text-pink-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'mythic': {
+                            'color': 'text-yellow-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                    }
+                }, 
+                'Large': {
+                    'area': 1536,
+                    'mint': 530,
+                    'rarities': {
+                        'common': {
+                            'color': 'text-gray-400',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'uncommon': {
+                            'color': 'text-green-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'rare': {
+                            'color': 'text-blue-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'legendary': {
+                            'color': 'text-pink-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'mythic': {
+                            'color': 'text-yellow-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                    }
+                }, 
+                'Epic': {
+                    'area': 3456,
+                    'mint': 1111,
+                    'rarities': {
+                        'common': {
+                            'color': 'text-gray-400',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'uncommon': {
+                            'color': 'text-green-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'rare': {
+                            'color': 'text-blue-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'legendary': {
+                            'color': 'text-pink-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'mythic': {
+                            'color': 'text-yellow-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                    }
+
+                }, 
+                'Copias': {
+                    'area': 6144,
+                    'mint': 1709,
+                    'rarities': {
+                        'common': {
+                            'color': 'text-gray-400',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'uncommon': {
+                            'color': 'text-green-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'rare': {
+                            'color': 'text-blue-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'legendary': {
+                            'color': 'text-pink-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                        'mythic': {
+                            'color': 'text-yellow-500',
+                            'floor': 0,
+                            'asset_id': 0,
+                            'url': '',
+                            'price_diff': 0,
+                            'price_diff_percentage': 0,
+                            'price_m2': 0,
+                        },
+                    }
+                }
+           }
+           
+        }
+    }
+</script>
