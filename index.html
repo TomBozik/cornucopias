@@ -19,21 +19,21 @@
         <template x-if="isErrorJpg">
             <div class="text-sm font-bold text-red-500 text-center pb-2" x-text="errorJpg"></div>
         </template>
-        <table class="table-fixed text-gray-200">
+        <table class="table-fixed text-gray-200 ml-2">
             <thead class="border-b-8 border-dark">
-                <tr class="text-left">
-                    <th class="pr-10">Size</th>
-                    <th class="pr-10">Rarity</th>
-                    <th class="pr-10">Floor</th>
-                    <th class="pr-10">Mint Diff</th>
-                    <th class="pr-10">Mint Diff %</th>
+                <tr class="text-left text-sm md:text-md">
+                    <th class="md:pr-10 pr-6">Size</th>
+                    <th class="md:pr-14 pr-6">Rarity</th>
+                    <th class="md:pr-10 pr-4">Floor</th>
+                    <th class="md:pr-10 pr-4">Mint Diff</th>
+                    <th class="md:pr-10 pr-4">Mint Diff %</th>
                     <th class="">Price m<span class="align-top text-xs">2</span></th>
                 </tr>
             </thead>
             <template x-for="values,size in collection">
                 <tbody class="border-b-8 border-dark">
                     <template x-for="values,rarity in values.rarities">
-                        <tr class="text-sm text-gray-400">
+                        <tr class="text-xs md:text-sm text-gray-400">
                             <td x-text="size" ></td>
                             <td x-text="rarity" class="capitalize" :class="values.color"></td>
                             <td><a x-bind:href="values.url" class="hover:text-red-500" x-text="values.floor" target="_blank"></a></td>
