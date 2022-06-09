@@ -156,6 +156,7 @@
                         this.isError = true;
                     });
                 userLands = tokens.filter(land => { return land.policy === this.policyId });
+                this.isError = false; 
                 userLands.forEach(land => {
                     let size = land.metadata.name.split(" ")[0];
                     let rarity = land.metadata.rarity.toLowerCase();;
