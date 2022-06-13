@@ -125,7 +125,7 @@
                         });
                         this.collection[size]['rarities'][rarity]['floor'] = floor_land['price'];
                         this.collection[size]['rarities'][rarity]['asset_id'] = floor_land['asset_id'];
-                        this.collection[size]['rarities'][rarity]['price_diff'] =  floor_land['price'] - this.collection[size]['mint'];
+                        this.collection[size]['rarities'][rarity]['price_diff'] =  (floor_land['price'] - this.collection[size]['mint']).toFixed(2);
                         this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
                         this.collection[size]['rarities'][rarity]['price_m2'] =  (floor_land['price']/this.collection[size]['area']).toFixed(2);
                         this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + floor_land['asset_id']; 
