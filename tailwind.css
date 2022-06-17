@@ -554,10 +554,22 @@ video {
   border-color: rgba(229, 231, 235, var(--tw-border-opacity));
 }
 
-/* Write Custom CSS */
+.tooltip {
+  visibility: hidden;
+  position: absolute;
+}
+
+.has-tooltip:hover .tooltip {
+  visibility: visible;
+  z-index: 50;
+}
 
 .m-auto {
   margin: auto;
+}
+
+.-mt-8 {
+  margin-top: -2rem;
 }
 
 .ml-2 {
@@ -694,9 +706,18 @@ video {
   border-color: rgba(33, 33, 33, var(--tw-border-opacity));
 }
 
+.bg-gray-900 {
+  --tw-bg-opacity: 1;
+  background-color: rgba(17, 24, 39, var(--tw-bg-opacity));
+}
+
 .bg-dark {
   --tw-bg-opacity: 1;
   background-color: rgba(33, 33, 33, var(--tw-bg-opacity));
+}
+
+.p-2 {
+  padding: 0.5rem;
 }
 
 .px-2 {
@@ -879,6 +900,11 @@ video {
 
 *, ::before, ::after {
   --tw-shadow: 0 0 #0000;
+}
+
+.shadow-lg {
+  --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 .focus\:outline-none:focus {

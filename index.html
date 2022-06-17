@@ -28,7 +28,7 @@
                     <th class="md:pr-10 pr-4">Mint Diff</th>
                     <th class="md:pr-10 pr-4">Mint Diff %</th>
                     <th class="md:pr-10 pr-2">Price m<span class="align-top text-xs">2</span></th>
-                    <th class="">Wallet</th>
+                    <th class="has-tooltip">Wallet<span class='tooltip rounded shadow-lg p-2 bg-gray-900 text-gray-200 -mt-8' x-text="wallet_total"></span></th>
                 </tr>
             </thead>
             <template x-for="values,size in collection">
@@ -85,6 +85,8 @@
             error: '',
 
             policyId: '07b39a8ead0ef1e3054e816a3b6910060beaf2210fded63fb90ce137',
+
+            wallet_total: 'Plots: 0',
 
             async fetchJpgStore(){
                 this.isLoadingJpg = true;
@@ -162,6 +164,7 @@
                     let rarity = land.metadata.rarity.toLowerCase();;
                     this.collection[size]['rarities'][rarity]['in_wallet'] += 1;
                 });
+                this.wallet_total = 'Plots: ' + userLands.length;
             },
             resetWalletHoldings(){
                 for (let size in this.collection){
@@ -169,6 +172,7 @@
                         this.collection[size]['rarities'][rarity]['in_wallet'] = 0;
                     }
                 }
+                this.wallet_total = 0;
             },
             collection: {
                 'Small': {
