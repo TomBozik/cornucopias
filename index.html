@@ -27,7 +27,8 @@
                     <th class="md:pr-10 pr-4">Floor</th>
                     <th class="md:pr-10 pr-4">Mint Diff</th>
                     <th class="md:pr-10 pr-4">Mint Diff %</th>
-                    <th class="md:pr-10 pr-2">Price m<span class="align-top text-xs">2</span></th>
+                    <th class="md:pr-10 pr-4">Price m<span class="align-top text-xs">2</span></th>
+                    <th class="md:pr-10 pr-2">Reward/Price</th>
                     <th class="has-tooltip">Wallet<span class='tooltip rounded shadow-lg p-2 bg-gray-900 text-gray-200 -mt-8' x-text="wallet_total"></span></th>
                 </tr>
             </thead>
@@ -41,6 +42,7 @@
                             <td x-text="values.price_diff"></td>
                             <td x-text="values.price_diff_percentage"></td>
                             <td x-text="values.price_m2"></td>
+                            <td x-text="values.reward_price"></td>
                             <td x-text="values.in_wallet"></td>
                         </tr>
                     </template>
@@ -87,6 +89,7 @@
             policyId: '07b39a8ead0ef1e3054e816a3b6910060beaf2210fded63fb90ce137',
 
             wallet_total: 'Plots: 0',
+            wallet_rewards: 0,
 
             async fetchJpgStore(){
                 this.isLoadingJpg = true;
@@ -130,6 +133,7 @@
                         this.collection[size]['rarities'][rarity]['price_diff'] =  (floor_land['price'] - this.collection[size]['mint']).toFixed(2);
                         this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
                         this.collection[size]['rarities'][rarity]['price_m2'] =  (floor_land['price']/this.collection[size]['area']).toFixed(2);
+                        this.collection[size]['rarities'][rarity]['reward_price'] =  (this.collection[size]['rarities'][rarity]['staking_reward']/floor_land['price']).toFixed(4);;
                         this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + floor_land['asset_id']; 
                     }
                 }
@@ -163,8 +167,9 @@
                     let size = land.metadata.name.split(" ")[0];
                     let rarity = land.metadata.rarity.toLowerCase();;
                     this.collection[size]['rarities'][rarity]['in_wallet'] += 1;
+                    this.wallet_rewards += this.collection[size]['rarities'][rarity]['staking_reward'];
                 });
-                this.wallet_total = 'Plots: ' + userLands.length;
+                this.wallet_total = 'Plots: ' + userLands.length + ', Rewards: ' + this.wallet_rewards;
             },
             resetWalletHoldings(){
                 for (let size in this.collection){
@@ -173,6 +178,7 @@
                     }
                 }
                 this.wallet_total = 0;
+                this.wallet_rewards = 0;
             },
             collection: {
                 'Small': {
@@ -182,6 +188,8 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
+                            'staking_reward': 7,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -192,6 +200,8 @@
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
+                            'staking_reward': 9,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -202,6 +212,8 @@
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
+                            'staking_reward': 12,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -212,6 +224,8 @@
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
+                            'staking_reward': 22,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -222,6 +236,8 @@
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
+                            'staking_reward': 59,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -238,6 +254,8 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
+                            'staking_reward': 10,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -248,6 +266,8 @@
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
+                            'staking_reward': 12,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -258,6 +278,8 @@
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
+                            'staking_reward': 15,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -268,6 +290,8 @@
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
+                            'staking_reward': 26,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -278,6 +302,8 @@
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
+                            'staking_reward': 79,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -294,6 +320,8 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
+                            'staking_reward': 15,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -304,6 +332,8 @@
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
+                            'staking_reward': 19,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -314,6 +344,8 @@
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
+                            'staking_reward': 26,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -324,6 +356,8 @@
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
+                            'staking_reward': 46,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -334,6 +368,8 @@
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
+                            'staking_reward': 155,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -350,6 +386,8 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
+                            'staking_reward': 32,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -360,6 +398,8 @@
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
+                            'staking_reward': 40,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -370,6 +410,8 @@
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
+                            'staking_reward': 56,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -380,6 +422,8 @@
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
+                            'staking_reward': 107,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -390,6 +434,8 @@
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
+                            'staking_reward': 268,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -407,6 +453,8 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
+                            'staking_reward': 84,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -417,6 +465,8 @@
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
+                            'staking_reward': 111,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -427,6 +477,8 @@
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
+                            'staking_reward': 177,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -437,6 +489,8 @@
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
+                            'staking_reward': 297,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
@@ -447,6 +501,8 @@
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
+                            'staking_reward': 743,
+                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
