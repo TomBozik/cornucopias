@@ -28,7 +28,6 @@
                     <th class="md:pr-10 pr-4">Mint Diff</th>
                     <th class="md:pr-10 pr-4">Mint Diff %</th>
                     <th class="md:pr-10 pr-4">Price m<span class="align-top text-xs">2</span></th>
-                    <th class="md:pr-10 pr-2">Reward/Price</th>
                     <th class="has-tooltip">Wallet<span class='tooltip rounded shadow-lg p-2 bg-gray-900 text-gray-200 -mt-8' x-text="wallet_total"></span></th>
                 </tr>
             </thead>
@@ -42,7 +41,6 @@
                             <td x-text="values.price_diff"></td>
                             <td x-text="values.price_diff_percentage"></td>
                             <td x-text="values.price_m2"></td>
-                            <td x-text="values.reward_price"></td>
                             <td x-text="values.in_wallet"></td>
                         </tr>
                     </template>
@@ -96,49 +94,38 @@
                 let jpgListings = [];
                 let processedListings = [];
 
-                await fetch('https://server.jpgstoreapis.com/search/tokens?policyIds=["07b39a8ead0ef1e3054e816a3b6910060beaf2210fded63fb90ce137"]&saleType=buy-now&sortBy=price-low-to-high&traits={}&nameQuery=&verified=default&pagination={}&size=10000')
-                .then(response => {
-                    if (!response.ok) {
-                        this.isLoadingJpg = false;
-                        this.isErrorJpg = true;
-                        this.errorJpg = `Error: ${response.status} - ${response.statusText}`
-                    }
-                    return response.json()
-                })
-                .then((data) => {
-                    jpgListings = data['tokens'];
-                    this.isLoadingJpg = false;
-                }).catch(function (err) {
-                    this.isLoadingJpg = false;
-                    this.errorJpg = `Error :(`;
-                    this.isErrorJpg = true;
-                });
-
-                jpgListings.forEach(listing => {
-                    processedListings.push({
-                        'size': listing['display_name'].split(" ")[0],
-                        'rarity': listing['traits']['rarity'],
-                        'price': listing['listing_lovelace']/1000000,
-                        'asset_id': listing['asset_id']
-                    })
-                });
-
                 for (let size in this.collection){
                     for(let rarity in this.collection[size]['rarities']){
-                        let floor_land = processedListings.find(listing => {
-                            return listing['size'] == size && listing['rarity'] == rarity;
-                        });
-                        if(floor_land){
-                            this.collection[size]['rarities'][rarity]['floor'] = floor_land['price'];
-                            this.collection[size]['rarities'][rarity]['asset_id'] = floor_land['asset_id'];
-                            this.collection[size]['rarities'][rarity]['price_diff'] =  (floor_land['price'] - this.collection[size]['mint']).toFixed(2);
-                            this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
-                            this.collection[size]['rarities'][rarity]['price_m2'] =  (floor_land['price']/this.collection[size]['area']).toFixed(2);
-                            this.collection[size]['rarities'][rarity]['reward_price'] =  (this.collection[size]['rarities'][rarity]['staking_reward']/floor_land['price']).toFixed(4);;
-                            this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + floor_land['asset_id']; 
+                        const response = await fetch(`https://server.jpgstoreapis.com/search/tokens?policyIds=[%2207b39a8ead0ef1e3054e816a3b6910060beaf2210fded63fb90ce137%22]&saleType=default&sortBy=price-low-to-high&traits=%7B%22gameid%22:[%22${this.collection[size]['rarities'][rarity]['gameid']}%22]%7D&listingTypes=[%22ALL_LISTINGS%22]&nameQuery=&verified=default&onlyMainBundleAsset=false&size=20`)
+                        
+                        if (!response.ok) {
+                            this.isLoadingJpg = false;
+                            this.isErrorJpg = true;
+                            this.errorJpg = `Error: ${response.status} - ${response.statusText}`
+                            continue;
                         }
+                        
+                        const lands = await response.json()
+                        const cheapest = {
+                            'size': lands['tokens'][0]['display_name'].split(" ")[0],
+                            'rarity': lands['tokens'][0]['traits']['rarity'],
+                            'price': lands['tokens'][0]['listing_lovelace']/1000000,
+                            'asset_id': lands['tokens'][0]['asset_id']
+                        }
+                        
+                        if(cheapest['price'] > 0){
+                            this.collection[size]['rarities'][rarity]['floor'] = cheapest['price'];
+                            this.collection[size]['rarities'][rarity]['asset_id'] = cheapest['asset_id'];
+                            this.collection[size]['rarities'][rarity]['price_diff'] =  (cheapest['price'] - this.collection[size]['mint']).toFixed(2);
+                            this.collection[size]['rarities'][rarity]['price_diff_percentage'] = (this.collection[size]['rarities'][rarity]['price_diff'] / (this.collection[size]['mint'] / 100)).toFixed(2).toString() + '%';
+                            this.collection[size]['rarities'][rarity]['price_m2'] =  (cheapest['price']/this.collection[size]['area']).toFixed(2);
+                            this.collection[size]['rarities'][rarity]['url'] =  'https://www.jpg.store/asset/' + cheapest['asset_id']; 
+                        }
+                        
                     }
                 }
+                this.isLoadingJpg = false;
+                this.jpgLoaded = true;
             },
 
             async fetchLand(){
@@ -190,62 +177,57 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
-                            'staking_reward': 7,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcsmz12301'
                         },
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
-                            'staking_reward': 9,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcsmz12302'
                         },
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
-                            'staking_reward': 12,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcsmz12303'
                         },
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
-                            'staking_reward': 22,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcsmz12304'
                         },
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
-                            'staking_reward': 59,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcsmz12305'
                         },
                     }
                 }, 
@@ -256,62 +238,57 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
-                            'staking_reward': 10,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcmdz12301'
                         },
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
-                            'staking_reward': 12,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcmdz12302'
                         },
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
-                            'staking_reward': 15,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcmdz12303'
                         },
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
-                            'staking_reward': 26,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcmdz12304'
                         },
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
-                            'staking_reward': 79,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcmdz12305'
                         },
                     }
                 }, 
@@ -322,62 +299,57 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
-                            'staking_reward': 15,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpclgz12301'
                         },
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
-                            'staking_reward': 19,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpclgz12302'
                         },
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
-                            'staking_reward': 26,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpclgz12303'
                         },
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
-                            'staking_reward': 46,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpclgz12304'
                         },
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
-                            'staking_reward': 155,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpclgz12305'
                         },
                     }
                 }, 
@@ -388,62 +360,57 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
-                            'staking_reward': 32,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcepz12301'
                         },
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
-                            'staking_reward': 40,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcepz12302'
                         },
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
-                            'staking_reward': 56,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcepz12303'
                         },
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
-                            'staking_reward': 107,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcepz12304'
                         },
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
-                            'staking_reward': 268,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpcepz12305'
                         },
                     }
 
@@ -455,62 +422,57 @@
                         'common': {
                             'color': 'text-gray-400',
                             'in_wallet': 0,
-                            'staking_reward': 84,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpccpz12301'
                         },
                         'uncommon': {
                             'color': 'text-green-500',
                             'in_wallet': 0,
-                            'staking_reward': 111,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpccpz12302'
                         },
                         'rare': {
                             'color': 'text-blue-500',
                             'in_wallet': 0,
-                            'staking_reward': 177,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpccpz12303'
                         },
                         'legendary': {
                             'color': 'text-pink-500',
                             'in_wallet': 0,
-                            'staking_reward': 297,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpccpz12304'
                         },
                         'mythic': {
                             'color': 'text-yellow-500',
                             'in_wallet': 0,
-                            'staking_reward': 743,
-                            'reward_price': 0,
                             'floor': 0,
                             'asset_id': 0,
                             'url': '',
                             'price_diff': 0,
                             'price_diff_percentage': 0,
                             'price_m2': 0,
+                            'gameid': 'lpccpz12305'
                         },
                     }
                 }
