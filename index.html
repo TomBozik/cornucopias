@@ -148,7 +148,13 @@
 
                 for (let size in this.collection){
                     for(let rarity in this.collection[size]['rarities']){
-                        const response = await fetch(`https://server.jpgstoreapis.com/search/tokens?policyIds=[%2207b39a8ead0ef1e3054e816a3b6910060beaf2210fded63fb90ce137%22]&saleType=default&sortBy=price-low-to-high&traits=%7B%22gameid%22:[%22${this.collection[size]['rarities'][rarity]['gameid']}%22]%7D&listingTypes=[%22ALL_LISTINGS%22]&nameQuery=&verified=default&onlyMainBundleAsset=false&size=20`)
+
+                        const traits={
+                            gameid:[this.collection[size]['rarities'][rarity]['gameid']],
+                            
+                        }
+                        const encodedTraits=encodeURIComponent(btoa(JSON.stringify(traits)))
+                        const response = await fetch(`https://server.jpgstoreapis.com/search/tokens?policyIds=07b39a8ead0ef1e3054e816a3b6910060beaf2210fded63fb90ce137&saleType=default&sortBy=price-low-to-high&traits=${encodedTraits}&listingTypes=ALL_LISTINGS&nameQuery=&verified=default&onlyMainBundleAsset=false&size=1`)
                         
                         if (!response.ok) {
                             this.isLoadingJpg = false;
